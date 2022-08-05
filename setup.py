@@ -1,6 +1,6 @@
 import setuptools
 import sys
-# - For nose, see https://github.com/poikilos/mgep/blob/master/setup.py
+import os
 
 install_requires = []
 if os.path.isfile("requirements.txt"):
