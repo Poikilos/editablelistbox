@@ -1,14 +1,13 @@
-# editablelistbox
-This is a copy of David Duran's ListBoxEditable with some changes such as using PEP8.
+# EditableListbox
+EditableListbox is Poikilos' fork of David Duran's ListBoxEditable.
 
 ![screenshot](screenshot.png)
 
 
 ## Differences in Poikilos fork
-- Fix: Preserve the text from the label when switching to Entry mode.
 - Preserve the value when changing to entry mode.
-- Keep names separate from values.
-- Implement pressing enter.
+- Store names in a list and generate them separately from the values.
+- Press the enter/return key to end entry.
 - Use PEP8 such as for:
   - spacing
   - variable and method naming (constant all caps convention, word order
