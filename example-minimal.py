@@ -16,7 +16,8 @@ Changes by Poikilos:
 '''
 from tkinter import *
 # from tkinter.ttk import *
-# ^ breaks `bg=` unless `from editablelistbox import *` cancels it out
+# ^ breaks `bg=` unless `from editablelistbox import *` cancels it out,
+#   in which case it is pointless anyway.
 from tkinter import ttk
 # from editablelistbox import *
 from editablelistbox import (
@@ -27,12 +28,6 @@ from editablelistbox import (
     EditableListbox,
 )
 
-# ACTIVE_TAB_COLOR = "#CCCCCC"
-# INACTIVE_TAB_COLOR = "#EBEBEB"
-# LABEL_FONT = 'Calibri'
-# LABEL_SIZE = 13
-
-# Main window
 root = Tk()
 
 # *** Design *****
@@ -41,15 +36,15 @@ name_label_frame = Frame(column_frame, bg='blue')
 name_label = Label(name_label_frame, text="Header", bg='blue',
                    fg='white', font=(LABEL_FONT, LABEL_SIZE, 'bold'),
                    pady=2, padx=2, width=10)
-listbox_name_frame = Frame(column_frame, bg='blue')
+listbox_frame = Frame(column_frame, bg='blue')
 items = ['test1', 'test2', 'test3']
-name_listbox = EditableListbox(listbox_name_frame, items)
+name_listbox = EditableListbox(listbox_frame, items)
 
 # *** Packing ****
 column_frame.pack(side=LEFT, fill=Y)
 name_label_frame.pack(side=TOP, fill=X)
 name_label.pack(side=LEFT, fill=X)
-listbox_name_frame.pack(side=TOP, fill=X)
-name_listbox.placeLabels()
+listbox_frame.pack(side=TOP, fill=X)
+name_listbox.gridAll()
 
 root.mainloop()

@@ -15,141 +15,172 @@ LABEL_SIZE = 13
 
 class EditableListbox(object):
     """
-    This emulates listbox, but you can also edit a field.
+    This emulates listbox, but you can also edit a field. When an item
+    (Label) is double-clicked, it transforms into an Entry. When it
+    loses focus, its value is stored back to the label.
     """
-    # Constructor
-    def __init__(self, frameMaster, items):
+
+    def __init__(self, parent, items):
         '''
         Sequential arguments:
-        frameMaster -- set master (tk.Tk() or any frame under it)
-        items -- provide a list of strings.
+        parent -- set master (tk.Tk() or any frame under it)
+        items -- Provide a list of names. They must not contain spaces
+            since they are used as member variable names (with "label"
+            prepended).
         '''
-        # *** Assign the first variables ***
-        # The frame that contains the EditableListbox
-        self.frameMaster = frameMaster
-        # List of the initial items
-        self.items = items
-        # Number of initial rows at the moment
-        self.numberRows = len(self.items)
+        self.parent = parent
+        # self.names = [self.rowToName(i) for i in range(len(items))]
+        # self.items = items
+        self.names = []
+        self.rowCount = len(items)
+        self.activeEntry = None
+        self.activeRow = None
 
-        # *** Create the necessary labels ***
-        index = 1
-        for row in self.items:
-            # Get the name of the label
-            labelName = 'label' + str(index)
-            # Create the variable
-            thisLabel = Label(self.frameMaster, text=self.items[index-1],
+        for index in range(len(items)):
+            row = index + 1
+            value = items[index]
+            labelName = self.rowToName(row)  # self.names[index]
+            thisLabel = Label(self.parent, text=value,
                               bg=ACTIVE_TAB_COLOR, fg='black',
                               font=(LABEL_FONT, LABEL_SIZE), pady=2, padx=2,
                               width=10)
             setattr(self, labelName, thisLabel)
+            self.names.append(labelName)
 
             # ** Bind actions
             # 1 left click - Change background
-            getattr(self, labelName).bind('<Button-1>', lambda event,
-                                          a=labelName: self.changeBackground(a))
+            getattr(self, labelName).bind(
+                '<Button-1>',
+                lambda event,a=labelName: self._onClick(a))
             # Double click - Convert to entry
             getattr(self, labelName).bind(
                 '<Double-1>',
-                lambda event, a=index: self.changeToEntry(a)
+                lambda event,a=row: self._onDoubleClick(a)
             )
             # Move up and down
             getattr(self, labelName).bind("<Up>", lambda event,
-                                          a=index: self.up(a))
+                                          a=row: self._onUp(a))
             getattr(self, labelName).bind("<Down>", lambda event,
-                                          a=index: self.down(a))
+                                          a=row: self._onDown(a))
 
-            # Increase the iterator
-            index = index + 1
+    def rowToName(self, row):
+        return "label" + str(row)
 
-    def placeLabels(self):
+    def gridAll(self):
         '''
-        Go row by row placing each label.
+        Place each row's Label on the parent grid.
         '''
-        index = 1
-        for row in self.items:
-            labelName = 'label'+str(index)
-            # Place the label
-            getattr(self, labelName).grid(row=index-1, column=0)
-            index += 1
+        for index in range(len(self.names)):
+            row = index + 1
+            labelName = self.names[index]
+            getattr(self, labelName).grid(row=row-1, column=0)
+            # getattr(self, labelName).configure(text="")
 
-    def changeBackground(self, labelNameSelected):
+    def _onClick(self, labelNameSelected):
         '''
-        This runs on single-click.
+        On single-click, change the background.
         '''
+        # row = self.labelNameToRow(labelNameSelected)
+        # self._stopEntry(row)
+        self._select(labelNameSelected)
+        # self._startEntry(row)
+
+    def labelNameToRow(self, labelName):
+        for index in range(len(self.names)):
+            row = index + 1
+            if self.rowToName(row) == labelName:
+                return row
+        return None
+
+    def _select(self, labelNameSelected):
         # Ensure that all the remaining labels are deselected
-        index = 1
-        for row in self.items:
-            # Get the name of the label
-            labelName = 'label'+str(index)
+        for index in range(len(self.names)):
+            labelName = self.names[index]
             # Place the variable
             getattr(self, labelName).configure(bg=ACTIVE_TAB_COLOR)
-
-            # Increase the iterator
-            index = index + 1
 
         # Change the background of the corresponding label
         getattr(self, labelNameSelected).configure(bg=INACTIVE_TAB_COLOR)
         # Set the focus for future bindings (moves)
         getattr(self, labelNameSelected).focus_set()
 
-    def up(self, index):
+    def _onUp(self, row):
         '''
         This runs when the up button is pressed.
         '''
-        if index == 1:  # Go to the last
-            # Get the name of the label
-            labelName = 'label' + str(self.numberRows)
+        if row == 1:
+            # Wrap around to the end.
+            labelName = 'label' + str(self.rowCount)
         else:  # Normal
-            # Get the name of the label
-            labelName = 'label' + str(index-1)
+            labelName = 'label' + str(row-1)  # go to the previous one
 
-        # Call the select
-        self.changeBackground(labelName)
+        self._onClick(labelName)
 
-    def down(self, index):
+    def _onDown(self, row):
         '''
         This runs when the down button is pressed.
         '''
-        if index == self.numberRows:  # Go to the last
-            # Get the name of the label
-            labelName = 'label1'
-        else:  # Normal
-            # Get the name of the label
-            labelName = 'label' + str(index+1)
+        if row == self.rowCount:
+            # Wrap around to the start.
+            labelName = self.nameToIndex(1)
+        else:
+            labelName = self.nameToIndex(row+1)  # go to the next one
 
-        # Call the select
-        self.changeBackground(labelName)
+        self._select(labelName)
 
-    def changeToEntry(self, index):
+    def _onDoubleClick(self, row):
+        # pass
+        self._startEntry(row)
+
+    def _startEntry(self, row):
         '''
-        This runs on double-click.
+        Change the Label to an entry.
         '''
-        # Variable of the current entry
+        if row is None:
+            raise ValueError("row is None.")
+
         self.entryVar = StringVar()
-        # Create the entry
-        # entryName='entry'+str(index) # Name
-        self.entryActive = ttk.Entry(self.frameMaster,
+
+        labelName = self.rowToName(row)
+        self.entryVar.set(getattr(self, labelName).cget("text"))
+
+        # entryName='entry'+str(row)
+        self.activeRow = row
+        self.activeEntry = ttk.Entry(self.parent,
                                      font=(LABEL_FONT, LABEL_SIZE),
                                      textvariable=self.entryVar, width=10)
-        # Place it on the correct grid position
-        self.entryActive.grid(row=index-1, column=0)
-        # Focus to the entry
-        self.entryActive.focus_set()
+        self.activeEntry.grid(row=row-1, column=0)
+        self.activeEntry.focus_set()
 
-        # Bind the action of focusOut
-        self.entryActive.bind("<FocusOut>",
-                              lambda event, a=index: self.saveEntryValue(a))
+        self.activeEntry.bind("<FocusOut>",
+                              lambda event, a=row: self._onLostFocus(a))
 
-    def saveEntryValue(self, index):
+        self.activeEntry.bind("<Return>",
+                              lambda event, a=row: self._onEnterPressed(a))
+
+    def _onLostFocus(self, row):
+        self._stopEntry(row)
+
+    def _onEnterPressed(self, row):
+        self._stopEntry(row)
+
+    def _stopEntry(self, row):
         '''
-        This runs when focus is lost.
+        When focus is lost, replace the entry with the recovered label
+        with the new value.
+
+        Sequential arguments:
+        row -- This is ignored now. The new and more reliable
+            self.activeRow is now used.
         '''
-        # Find the label to recover
-        labelName = 'label'+str(index)
-        # Remove the entry from the screen
-        self.entryActive.grid_forget()
-        # Place it again
-        getattr(self, labelName).grid(row=index-1, column=0)
-        # Change the name to the value of the entry
+        if self.activeEntry is None:
+            return False
+        labelName = self.rowToName(row)
+        self.activeEntry.grid_forget()  # Remove the entry.
+        getattr(self, labelName).grid(row=self.activeRow-1, column=0)
+        # Store the entry value in the label:
         getattr(self, labelName).configure(text=self.entryVar.get())
+        # self.activeEntry = None
+        # self.activeRow = None
+        # self.entryVar = None
+        return True
