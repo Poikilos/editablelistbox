@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [git] - 2022-08-04
 (Poikilos)
+### Added
+- Press the enter/return key to end entry (instead of only by the entry
+  losing focus).
+
 ### Changed
 (editablelistbox)
 - Use PEP8 more.
@@ -23,7 +27,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     - and more
   - Document init params, and move other documentation comments to
     docstrings as well.
-- Do not use builtin list as a variable name (change to items).
+- Do not use the `builtin` `list` as a variable name (Change the list
+  variable's name to to `items`).
+- Store names in a list and generate them separately from the values.
 
 (example-minimal)
 - Use PEP8 more.

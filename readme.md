@@ -1,7 +1,12 @@
 # EditableListbox
-EditableListbox is Poikilos' fork of David Duran's ListBoxEditable.
+Create a listbox where you can edit the rows.
+- Each item is a label with its own click events.
+- Each item transforms into an Entry while editing the row.
+
 
 ![screenshot](screenshot.png)
+
+(EditableListbox is Poikilos' fork of David Duran's ListBoxEditable.)
 
 
 ## Differences in Poikilos fork
@@ -15,7 +20,7 @@ EditableListbox is Poikilos' fork of David Duran's ListBoxEditable.
     `placeListBoxEditable` to `gridAll`, `ListBoxEditable` to
     `EditableListbox`, etc.
   - module naming
-  - private function `_` convention
+  - private method `_` convention
   - Move documentation comments to docstrings.
 - See [changelog.md](changelog.md) for more.
 
